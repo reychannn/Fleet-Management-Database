@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="FleetApp.BLL/FleetApp.BLL.csproj" />
+  <Project Path="FleetApp.DAL/FleetApp.DAL.csproj" />
+  <Project Path="FleetApp.UI/FleetApp.UI.csproj" />
+</Solution>
