@@ -1,5 +1,5 @@
 <Solution>
-  <Project Path="FleetApp.BLL/FleetApp.BLL.csproj" />
-  <Project Path="FleetApp.DAL/FleetApp.DAL.csproj" />
-  <Project Path="FleetApp.UI/FleetApp.UI.csproj" />
+  <Project Path="FleetApp.BLL/FleetApp.BLL.csproj" Id="c83df3af-9012-4834-9592-4851d009f716" />
+  <Project Path="FleetApp.DAL/FleetApp.DAL.csproj" Id="1f20db10-341b-49af-adf8-dda71f1d5243" />
+  <Project Path="FleetApp.UI/FleetApp.UI.csproj" Id="777fb434-a49b-4ad2-8f49-7fba7d2e0502" />
 </Solution>

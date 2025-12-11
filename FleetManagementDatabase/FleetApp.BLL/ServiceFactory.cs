@@ -11,10 +11,9 @@ namespace FleetApp.BLL
             StoredProcedure
         }
 
-        public static IFleetService GetFleetService(ServiceType type)
+        // Return as object to avoid forcing downstream projects to reference DAL directly
+        public static object GetFleetService(ServiceType type)
         {
-            // [Image of Factory Design Pattern diagram]
-
             switch (type)
             {
                 case ServiceType.StoredProcedure:

@@ -55,8 +55,10 @@
     <Compile Include="FleetDBContext.cs" />
     <Compile Include="FleetServiceLINQ.cs" />
     <Compile Include="FleetServiceSP.cs" />
+    <Compile Include="IFleetService.cs" />
     <Compile Include="Models.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlObjectCatalog.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

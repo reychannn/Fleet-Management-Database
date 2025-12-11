@@ -24,6 +24,7 @@ namespace FleetApp.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string CNIC { get; set; }
+        public string ContactNumber { get; set; }
         public DateTime LicenseExpiry { get; set; }
         // LicenseValidity is managed by the trg_AutoUpdateDriverLicenseValidity trigger
         public string LicenseValidity { get; set; }
@@ -37,7 +38,10 @@ namespace FleetApp.Models
         public int VehicleID { get; set; }
         public int DriverID { get; set; }
         public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public decimal StartMileage { get; set; }
         public decimal EndMileage { get; set; }
+        public string Purpose { get; set; }
         // Note: Inserting a Trip invokes the trg_UpdateMileage_AfterTrip trigger
     }
 
@@ -47,6 +51,7 @@ namespace FleetApp.Models
         [Key]
         public int RecordID { get; set; }
         public int VehicleID { get; set; }
+        public DateTime ServiceDate { get; set; }
         public string ServiceType { get; set; }
         // Note: Cost is validated by the trg_ValidateCost_AfterMaintenance trigger
         public decimal Cost { get; set; }
