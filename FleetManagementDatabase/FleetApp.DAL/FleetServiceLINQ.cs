@@ -103,6 +103,21 @@ namespace FleetApp.DAL
                 new SqlParameter("@LicenseValidity", driver.LicenseValidity ?? (object)DBNull.Value));
         }
 
+        public void UpdateDriver(Driver driver)
+        {
+            var existing = context.Drivers.Find(driver.DriverID);
+            if (existing != null)
+            {
+                existing.FirstName = driver.FirstName;
+                existing.LastName = driver.LastName;
+                existing.CNIC = driver.CNIC;
+                existing.ContactNumber = driver.ContactNumber;
+                existing.LicenseExpiry = driver.LicenseExpiry;
+                // This SaveChanges call will fire the database trigger 'trg_AutoUpdateDriverLicenseValidity'
+                context.SaveChanges();
+            }
+        }
+
         public void DeleteVehicle(int vehicleId)
         {
             // EF translates this to SQL DELETE, invoking the INSTEAD OF trigger

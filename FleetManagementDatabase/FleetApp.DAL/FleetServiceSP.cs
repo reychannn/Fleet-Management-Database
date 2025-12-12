@@ -105,6 +105,23 @@ namespace FleetApp.DAL
             );
         }
 
+        public void UpdateDriver(Driver driver)
+        {
+            string sql = @"UPDATE Drivers 
+                   SET FirstName = @fn, LastName = @ln, CNIC = @cnic, 
+                       ContactNumber = @contact, LicenseExpiry = @expiry
+                   WHERE DriverID = @id";
+
+            ExecuteRawSql(sql,
+                new SqlParameter("@id", driver.DriverID),
+                new SqlParameter("@fn", driver.FirstName),
+                new SqlParameter("@ln", driver.LastName),
+                new SqlParameter("@cnic", driver.CNIC),
+                new SqlParameter("@contact", driver.ContactNumber),
+                new SqlParameter("@expiry", driver.LicenseExpiry)
+            );
+        }
+
         public void DeleteVehicle(int vehicleId)
         {
             try

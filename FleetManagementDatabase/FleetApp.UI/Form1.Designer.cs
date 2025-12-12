@@ -25,6 +25,7 @@
         private System.Windows.Forms.Button btnUpdateStatus;
         private System.Windows.Forms.Button btnVehicleHistory;
         private System.Windows.Forms.Button btnFuelCost;
+        private System.Windows.Forms.Button btnUpdateDriver;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -65,6 +66,7 @@
             this.btnUpdateStatus = new System.Windows.Forms.Button();
             this.btnVehicleHistory = new System.Windows.Forms.Button();
             this.btnFuelCost = new System.Windows.Forms.Button();
+            this.btnUpdateDriver = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.gridResults)).BeginInit();
             this.SuspendLayout();
             // 
@@ -251,12 +253,23 @@
             this.btnFuelCost.UseVisualStyleBackColor = true;
             this.btnFuelCost.Click += new System.EventHandler(this.btnFuelCost_Click);
             // 
+            // btnUpdateDriver
+            // 
+            this.btnUpdateDriver.Location = new System.Drawing.Point(700, 146); // Placed below Fuel Cost
+            this.btnUpdateDriver.Name = "btnUpdateDriver";
+            this.btnUpdateDriver.Size = new System.Drawing.Size(100, 23);
+            this.btnUpdateDriver.TabIndex = 18;
+            this.btnUpdateDriver.Text = "Update Driver";
+            this.btnUpdateDriver.UseVisualStyleBackColor = true;
+            this.btnUpdateDriver.Click += new System.EventHandler(this.btnUpdateDriver_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(820, 450);
             this.Controls.Add(this.btnFuelCost);
+            this.Controls.Add(this.btnUpdateDriver);
             this.Controls.Add(this.btnVehicleHistory);
             this.Controls.Add(this.btnUpdateStatus);
             this.Controls.Add(this.btnDeleteSelected);

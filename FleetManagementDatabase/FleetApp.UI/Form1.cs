@@ -353,6 +353,70 @@ namespace FleetApp.UI
             }
         }
 
+        private void btnUpdateDriver_Click(object sender, EventArgs e)
+        {
+            EnsureService();
+
+            if (!string.Equals(cmbObject.SelectedItem?.ToString(), "Drivers", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Select the Drivers table to update records.", "Update Driver", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (!TryGetSelectedId("Drivers", out int driverId, out string error))
+            {
+                lblStatus.Text = error;
+                MessageBox.Show(error, "Update Driver", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Get current values from the selected row
+            var row = gridResults.CurrentRow;
+            var currentData = new DriverInput
+            {
+                FirstName = row.Cells["FirstName"].Value?.ToString(),
+                LastName = row.Cells["LastName"].Value?.ToString(),
+                CNIC = row.Cells["CNIC"].Value?.ToString(),
+                ContactNumber = row.Cells["ContactNumber"].Value?.ToString(),
+                LicenseExpiry = row.Cells["LicenseExpiry"].Value != DBNull.Value
+                                ? Convert.ToDateTime(row.Cells["LicenseExpiry"].Value)
+                                : DateTime.Now.AddYears(1)
+            };
+
+            using (var dialog = new UpdateDriverForm(currentData))
+            {
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    try
+                    {
+                        var input = dialog.CreatedDriver; // Reuse the input class
+
+                        // Create a driver object manually or via helper
+                        var driverType = currentService.GetType().Assembly.GetType("FleetApp.Models.Driver");
+                        var driver = Activator.CreateInstance(driverType);
+
+                        driverType.GetProperty("DriverID")?.SetValue(driver, driverId);
+                        driverType.GetProperty("FirstName")?.SetValue(driver, input.FirstName);
+                        driverType.GetProperty("LastName")?.SetValue(driver, input.LastName);
+                        driverType.GetProperty("CNIC")?.SetValue(driver, input.CNIC);
+                        driverType.GetProperty("ContactNumber")?.SetValue(driver, input.ContactNumber);
+                        driverType.GetProperty("LicenseExpiry")?.SetValue(driver, input.LicenseExpiry);
+
+                        InvokeServiceMethod("UpdateDriver", driver);
+
+                        lblStatus.Text = $"Driver #{driverId} updated successfully.";
+                        LoadSelectedObject();
+                    }
+                    catch (Exception ex)
+                    {
+                        string friendly = GetInnermostMessage(ex);
+                        lblStatus.Text = friendly;
+                        MessageBox.Show(friendly, "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
         private void btnDeleteSelected_Click(object sender, EventArgs e)
         {
             EnsureService();
@@ -1254,6 +1318,106 @@ namespace FleetApp.UI
             grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             grid.DataSource = data;
             Controls.Add(grid);
+        }
+    }
+
+    internal class UpdateDriverForm : Form
+    {
+        private readonly TextBox txtFirstName = new TextBox();
+        private readonly TextBox txtLastName = new TextBox();
+        private readonly TextBox txtCnic = new TextBox();
+        private readonly TextBox txtContact = new TextBox();
+        private readonly DateTimePicker dtLicenseExpiry = new DateTimePicker();
+        private readonly Button btnSave = new Button();
+        private readonly Button btnCancel = new Button();
+
+        public DriverInput CreatedDriver { get; private set; }
+
+        public UpdateDriverForm(DriverInput existing)
+        {
+            Text = "Update Driver";
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterParent;
+            ClientSize = new System.Drawing.Size(360, 260);
+            MaximizeBox = false;
+            MinimizeBox = false;
+
+            Controls.Add(CreateLabel("First Name", 15, 15));
+            txtFirstName.Location = new System.Drawing.Point(140, 12);
+            txtFirstName.Width = 190;
+            txtFirstName.Text = existing.FirstName;
+            Controls.Add(txtFirstName);
+
+            Controls.Add(CreateLabel("Last Name", 15, 50));
+            txtLastName.Location = new System.Drawing.Point(140, 47);
+            txtLastName.Width = 190;
+            txtLastName.Text = existing.LastName;
+            Controls.Add(txtLastName);
+
+            Controls.Add(CreateLabel("CNIC", 15, 85));
+            txtCnic.Location = new System.Drawing.Point(140, 82);
+            txtCnic.Width = 190;
+            txtCnic.Text = existing.CNIC;
+            Controls.Add(txtCnic);
+
+            Controls.Add(CreateLabel("Contact #", 15, 120));
+            txtContact.Location = new System.Drawing.Point(140, 117);
+            txtContact.Width = 190;
+            txtContact.Text = existing.ContactNumber;
+            Controls.Add(txtContact);
+
+            Controls.Add(CreateLabel("License Expiry", 15, 155));
+            dtLicenseExpiry.Location = new System.Drawing.Point(140, 152);
+            dtLicenseExpiry.Width = 190;
+            dtLicenseExpiry.Format = DateTimePickerFormat.Short;
+            dtLicenseExpiry.Value = existing.LicenseExpiry;
+            Controls.Add(dtLicenseExpiry);
+
+            btnSave.Text = "Update";
+            btnSave.Location = new System.Drawing.Point(140, 200);
+            btnSave.Click += btnSave_Click;
+            Controls.Add(btnSave);
+
+            btnCancel.Text = "Cancel";
+            btnCancel.Location = new System.Drawing.Point(235, 200);
+            btnCancel.DialogResult = DialogResult.Cancel;
+            Controls.Add(btnCancel);
+
+            AcceptButton = btnSave;
+            CancelButton = btnCancel;
+        }
+
+        private static Label CreateLabel(string text, int x, int y)
+        {
+            return new Label
+            {
+                Text = text,
+                Location = new System.Drawing.Point(x, y),
+                AutoSize = true
+            };
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtFirstName.Text) ||
+                string.IsNullOrWhiteSpace(txtLastName.Text) ||
+                string.IsNullOrWhiteSpace(txtCnic.Text))
+            {
+                MessageBox.Show("Name and CNIC fields are required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            CreatedDriver = new DriverInput
+            {
+                FirstName = txtFirstName.Text.Trim(),
+                LastName = txtLastName.Text.Trim(),
+                CNIC = txtCnic.Text.Trim(),
+                ContactNumber = txtContact.Text.Trim(),
+                LicenseExpiry = dtLicenseExpiry.Value
+            };
+
+            DialogResult = DialogResult.OK;
+            Close();
         }
     }
 
