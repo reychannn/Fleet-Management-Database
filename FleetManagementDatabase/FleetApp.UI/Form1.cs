@@ -600,7 +600,15 @@ namespace FleetApp.UI
                 throw new MissingMethodException(currentService.GetType().FullName, methodName);
             }
 
-            return method.Invoke(currentService, parameters);
+            try
+            {
+                return method.Invoke(currentService, parameters);
+            }
+            catch (TargetInvocationException ex)
+            {
+                var root = ex.InnerException ?? ex;
+                throw new InvalidOperationException(root.Message, root);
+            }
         }
 
         private object CreateVehicleInstance(VehicleInput input)
@@ -897,7 +905,7 @@ namespace FleetApp.UI
             dtLicenseExpiry.Width = 190;
             dtLicenseExpiry.Format = DateTimePickerFormat.Short;
             Controls.Add(dtLicenseExpiry);
-            Controls.Add(CreateHintLabel("Must be at least 1 year in the future", 140, 255));
+            Controls.Add(CreateHintLabel("Enter any valid calendar date", 140, 255));
 
             btnSave.Text = "Save";
             btnSave.Location = new System.Drawing.Point(140, 265);
@@ -985,16 +993,6 @@ namespace FleetApp.UI
                 return false;
             }
 
-            if (dtLicenseExpiry.Value <= DateTime.Now.AddYears(1))
-            {
-                MessageBox.Show("License expiry must be at least one year from today.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
-            txtFirstName.Text = first;
-            txtLastName.Text = last;
-            txtCnic.Text = cnic;
-            txtContact.Text = contact;
             return true;
         }
     }
@@ -1236,11 +1234,11 @@ namespace FleetApp.UI
             numCost.Location = new System.Drawing.Point(140, 177);
             numCost.Width = 120;
             numCost.DecimalPlaces = 2;
-            numCost.Minimum = 2000;
-            numCost.Maximum = 5000;
+            numCost.Minimum = -1000000;
+            numCost.Maximum = 1000000;
             numCost.Increment = 50;
             Controls.Add(numCost);
-            Controls.Add(CreateHintLabel("Range: 2,000 - 5,000", 140, 200));
+            Controls.Add(CreateHintLabel("Enter any amount (negatives rejected by DB trigger)", 140, 200));
 
             Controls.Add(CreateLabel("Description", 15, 235));
             txtDescription.Location = new System.Drawing.Point(140, 232);
@@ -1331,12 +1329,6 @@ namespace FleetApp.UI
             if (Array.IndexOf(AllowedServiceTypes, serviceType) == -1)
             {
                 MessageBox.Show("Service Type must be Oil Change or Tire Rotation.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
-            if (numCost.Value < 2000 || numCost.Value > 5000)
-            {
-                MessageBox.Show("Cost must be between 2,000 and 5,000.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
@@ -1558,7 +1550,7 @@ namespace FleetApp.UI
             dtLicenseExpiry.Format = DateTimePickerFormat.Short;
             dtLicenseExpiry.Value = existing.LicenseExpiry;
             Controls.Add(dtLicenseExpiry);
-            Controls.Add(CreateHintLabel(">= 1 year from today", 140, 255));
+            Controls.Add(CreateHintLabel("Enter any valid calendar date", 140, 255));
 
             btnSave.Text = "Update";
             btnSave.Location = new System.Drawing.Point(140, 265);
@@ -1638,12 +1630,6 @@ namespace FleetApp.UI
             if (!Regex.IsMatch(txtContact.Text.Trim(), @"^\d{4}-\d{7}$"))
             {
                 MessageBox.Show("Contact must match 0300-0000001 pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
-            if (dtLicenseExpiry.Value <= DateTime.Now.AddYears(1))
-            {
-                MessageBox.Show("License expiry must be at least one year from today.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
