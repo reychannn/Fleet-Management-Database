@@ -1,7 +1,9 @@
 ﻿using FleetApp.BLL;
 using System;
 using System.Data;
+using System.Drawing;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace FleetApp.UI
@@ -702,6 +704,9 @@ namespace FleetApp.UI
         private readonly Button btnSave = new Button();
         private readonly Button btnCancel = new Button();
 
+        private static readonly string[] AllowedMakes = { "Toyota", "Honda", "Suzuki" };
+        private static readonly string[] AllowedModels = { "Corolla", "Civic", "Cultus" };
+
         public VehicleInput CreatedVehicle { get; private set; }
 
         public AddVehicleForm()
@@ -709,7 +714,7 @@ namespace FleetApp.UI
             Text = "Add Vehicle";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new System.Drawing.Size(360, 230);
+            ClientSize = new System.Drawing.Size(360, 300);
             MaximizeBox = false;
             MinimizeBox = false;
 
@@ -717,39 +722,46 @@ namespace FleetApp.UI
             txtMake.Location = new System.Drawing.Point(140, 12);
             txtMake.Width = 190;
             Controls.Add(txtMake);
+            Controls.Add(CreateHintLabel("Format: Toyota / Honda / Suzuki", 140, 35));
 
-            Controls.Add(CreateLabel("Model", 15, 50));
-            txtModel.Location = new System.Drawing.Point(140, 47);
+            Controls.Add(CreateLabel("Model", 15, 70));
+            txtModel.Location = new System.Drawing.Point(140, 67);
             txtModel.Width = 190;
             Controls.Add(txtModel);
+            Controls.Add(CreateHintLabel("Format: Corolla / Civic / Cultus", 140, 90));
 
-            Controls.Add(CreateLabel("License Plate", 15, 85));
-            txtLicensePlate.Location = new System.Drawing.Point(140, 82);
+            Controls.Add(CreateLabel("License Plate", 15, 125));
+            txtLicensePlate.Location = new System.Drawing.Point(140, 122);
             txtLicensePlate.Width = 190;
+            txtLicensePlate.CharacterCasing = CharacterCasing.Upper;
             Controls.Add(txtLicensePlate);
+            Controls.Add(CreateHintLabel("Format: ABC-1234 (3 letters + '-' + digits)", 140, 145));
 
-            Controls.Add(CreateLabel("Mileage", 15, 120));
-            numMileage.Location = new System.Drawing.Point(140, 117);
+            Controls.Add(CreateLabel("Mileage", 15, 180));
+            numMileage.Location = new System.Drawing.Point(140, 177);
             numMileage.Width = 190;
             numMileage.DecimalPlaces = 2;
+            numMileage.Minimum = 0;
             numMileage.Maximum = 1000000;
             Controls.Add(numMileage);
+            Controls.Add(CreateHintLabel("Range: 0 to 1,000,000 km", 140, 200));
 
-            Controls.Add(CreateLabel("Status", 15, 155));
-            cmbStatus.Location = new System.Drawing.Point(140, 152);
+            Controls.Add(CreateLabel("Status", 15, 215));
+            cmbStatus.Location = new System.Drawing.Point(140, 212);
             cmbStatus.Width = 190;
             cmbStatus.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbStatus.Items.AddRange(new object[] { "Available", "In-Use", "Maintenance" });
             cmbStatus.SelectedIndex = 0;
             Controls.Add(cmbStatus);
+            Controls.Add(CreateHintLabel("Select operational status", 140, 245));
 
             btnSave.Text = "Save";
-            btnSave.Location = new System.Drawing.Point(140, 190);
+            btnSave.Location = new System.Drawing.Point(140, 265);
             btnSave.Click += btnSave_Click;
             Controls.Add(btnSave);
 
             btnCancel.Text = "Cancel";
-            btnCancel.Location = new System.Drawing.Point(235, 190);
+            btnCancel.Location = new System.Drawing.Point(235, 265);
             btnCancel.DialogResult = DialogResult.Cancel;
             Controls.Add(btnCancel);
 
@@ -764,6 +776,17 @@ namespace FleetApp.UI
                 Text = text,
                 Location = new System.Drawing.Point(x, y),
                 AutoSize = true
+            };
+        }
+
+        private static Label CreateHintLabel(string text, int x, int y)
+        {
+            return new Label
+            {
+                Text = text,
+                Location = new System.Drawing.Point(x, y),
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText
             };
         }
 
@@ -789,14 +812,37 @@ namespace FleetApp.UI
 
         private bool ValidateForm()
         {
-            if (string.IsNullOrWhiteSpace(txtMake.Text) ||
-                string.IsNullOrWhiteSpace(txtModel.Text) ||
-                string.IsNullOrWhiteSpace(txtLicensePlate.Text))
+            string make = txtMake.Text.Trim();
+            string model = txtModel.Text.Trim();
+            string licensePlate = txtLicensePlate.Text.Trim().ToUpperInvariant();
+
+            if (Array.IndexOf(AllowedMakes, make) == -1)
             {
-                MessageBox.Show("Make, Model, and License Plate are required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Make must be Toyota, Honda, or Suzuki.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
+            if (Array.IndexOf(AllowedModels, model) == -1)
+            {
+                MessageBox.Show("Model must be Corolla, Civic, or Cultus.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Regex.IsMatch(licensePlate, @"^[A-Z]{3}-\d{1,4}$"))
+            {
+                MessageBox.Show("License Plate must match ABC-1234 pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (numMileage.Value < 0 || numMileage.Value > 1000000)
+            {
+                MessageBox.Show("Mileage must be between 0 and 1,000,000 km.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            txtMake.Text = make;
+            txtModel.Text = model;
+            txtLicensePlate.Text = licensePlate;
             return true;
         }
     }
@@ -818,7 +864,7 @@ namespace FleetApp.UI
             Text = "Add Driver";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new System.Drawing.Size(360, 260);
+            ClientSize = new System.Drawing.Size(360, 300);
             MaximizeBox = false;
             MinimizeBox = false;
 
@@ -826,35 +872,40 @@ namespace FleetApp.UI
             txtFirstName.Location = new System.Drawing.Point(140, 12);
             txtFirstName.Width = 190;
             Controls.Add(txtFirstName);
+            Controls.Add(CreateHintLabel("Format: Driver#### (e.g., Driver42)", 140, 35));
 
-            Controls.Add(CreateLabel("Last Name", 15, 50));
-            txtLastName.Location = new System.Drawing.Point(140, 47);
+            Controls.Add(CreateLabel("Last Name", 15, 70));
+            txtLastName.Location = new System.Drawing.Point(140, 67);
             txtLastName.Width = 190;
             Controls.Add(txtLastName);
+            Controls.Add(CreateHintLabel("Format: User#### (e.g., User42)", 140, 90));
 
-            Controls.Add(CreateLabel("CNIC", 15, 85));
-            txtCnic.Location = new System.Drawing.Point(140, 82);
+            Controls.Add(CreateLabel("CNIC", 15, 125));
+            txtCnic.Location = new System.Drawing.Point(140, 122);
             txtCnic.Width = 190;
             Controls.Add(txtCnic);
+            Controls.Add(CreateHintLabel("Format: 42201-0000001 (5 digits-7 digits)", 140, 145));
 
-            Controls.Add(CreateLabel("Contact #", 15, 120));
-            txtContact.Location = new System.Drawing.Point(140, 117);
+            Controls.Add(CreateLabel("Contact #", 15, 180));
+            txtContact.Location = new System.Drawing.Point(140, 177);
             txtContact.Width = 190;
             Controls.Add(txtContact);
+            Controls.Add(CreateHintLabel("Format: 0300-0000001 (4 digits-7 digits)", 140, 200));
 
-            Controls.Add(CreateLabel("License Expiry", 15, 155));
-            dtLicenseExpiry.Location = new System.Drawing.Point(140, 152);
+            Controls.Add(CreateLabel("License Expiry", 15, 235));
+            dtLicenseExpiry.Location = new System.Drawing.Point(140, 232);
             dtLicenseExpiry.Width = 190;
             dtLicenseExpiry.Format = DateTimePickerFormat.Short;
             Controls.Add(dtLicenseExpiry);
+            Controls.Add(CreateHintLabel("Must be at least 1 year in the future", 140, 255));
 
             btnSave.Text = "Save";
-            btnSave.Location = new System.Drawing.Point(140, 200);
+            btnSave.Location = new System.Drawing.Point(140, 265);
             btnSave.Click += btnSave_Click;
             Controls.Add(btnSave);
 
             btnCancel.Text = "Cancel";
-            btnCancel.Location = new System.Drawing.Point(235, 200);
+            btnCancel.Location = new System.Drawing.Point(235, 265);
             btnCancel.DialogResult = DialogResult.Cancel;
             Controls.Add(btnCancel);
 
@@ -869,6 +920,17 @@ namespace FleetApp.UI
                 Text = text,
                 Location = new System.Drawing.Point(x, y),
                 AutoSize = true
+            };
+        }
+
+        private static Label CreateHintLabel(string text, int x, int y)
+        {
+            return new Label
+            {
+                Text = text,
+                Location = new System.Drawing.Point(x, y),
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText
             };
         }
 
@@ -894,15 +956,45 @@ namespace FleetApp.UI
 
         private bool ValidateForm()
         {
-            if (string.IsNullOrWhiteSpace(txtFirstName.Text) ||
-                string.IsNullOrWhiteSpace(txtLastName.Text) ||
-                string.IsNullOrWhiteSpace(txtCnic.Text) ||
-                string.IsNullOrWhiteSpace(txtContact.Text))
+            string first = txtFirstName.Text.Trim();
+            string last = txtLastName.Text.Trim();
+            string cnic = txtCnic.Text.Trim();
+            string contact = txtContact.Text.Trim();
+
+            if (!Regex.IsMatch(first, @"^Driver\d{1,4}$", RegexOptions.IgnoreCase))
             {
-                MessageBox.Show("All fields are required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("First Name must follow Driver#### pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
+            if (!Regex.IsMatch(last, @"^User\d{1,4}$", RegexOptions.IgnoreCase))
+            {
+                MessageBox.Show("Last Name must follow User#### pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Regex.IsMatch(cnic, @"^\d{5}-\d{7}$"))
+            {
+                MessageBox.Show("CNIC must match 42201-0000001 pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Regex.IsMatch(contact, @"^\d{4}-\d{7}$"))
+            {
+                MessageBox.Show("Contact must match 0300-0000001 pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (dtLicenseExpiry.Value <= DateTime.Now.AddYears(1))
+            {
+                MessageBox.Show("License expiry must be at least one year from today.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            txtFirstName.Text = first;
+            txtLastName.Text = last;
+            txtCnic.Text = cnic;
+            txtContact.Text = contact;
             return true;
         }
     }
@@ -926,48 +1018,66 @@ namespace FleetApp.UI
             Text = "Add Trip";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new System.Drawing.Size(400, 320);
+            ClientSize = new System.Drawing.Size(430, 420);
             MaximizeBox = false;
             MinimizeBox = false;
 
-            Controls.Add(CreateLabel("Vehicle ID", 15, 15));
-            ConfigureNumeric(numVehicleId, 140, 12);
+            int labelX = 15;
+            int inputX = 160;
+            int top = 15;
+
+            Controls.Add(CreateLabel("Vehicle ID", labelX, top));
+            ConfigureNumeric(numVehicleId, inputX, top - 3, 1, 1000);
             Controls.Add(numVehicleId);
+            Controls.Add(CreateHintLabel("Range: 1 - 1000", inputX, top + 25));
+            top += 55;
 
-            Controls.Add(CreateLabel("Driver ID", 15, 50));
-            ConfigureNumeric(numDriverId, 140, 47);
+            Controls.Add(CreateLabel("Driver ID", labelX, top));
+            ConfigureNumeric(numDriverId, inputX, top - 3, 1, 1000);
             Controls.Add(numDriverId);
+            Controls.Add(CreateHintLabel("Range: 1 - 1000", inputX, top + 25));
+            top += 55;
 
-            Controls.Add(CreateLabel("Start Time", 15, 85));
-            ConfigureDateTime(dtStart, 140, 82);
+            Controls.Add(CreateLabel("Start Time", labelX, top));
+            ConfigureDateTime(dtStart, inputX, top - 5);
             Controls.Add(dtStart);
+            Controls.Add(CreateHintLabel("Format: yyyy-MM-dd HH:mm", inputX, top + 25));
+            top += 55;
 
-            Controls.Add(CreateLabel("End Time", 15, 120));
-            ConfigureDateTime(dtEnd, 140, 117);
+            Controls.Add(CreateLabel("End Time", labelX, top));
+            ConfigureDateTime(dtEnd, inputX, top - 5);
             dtEnd.Value = dtStart.Value.AddHours(1);
             Controls.Add(dtEnd);
+            Controls.Add(CreateHintLabel("Must be after Start Time", inputX, top + 25));
+            top += 55;
 
-            Controls.Add(CreateLabel("Start Mileage", 15, 155));
-            ConfigureMileage(numStartMileage, 140, 152);
+            Controls.Add(CreateLabel("Start Mileage", labelX, top));
+            ConfigureMileage(numStartMileage, inputX, top - 3, 0, 1000000);
             Controls.Add(numStartMileage);
+            Controls.Add(CreateHintLabel("Range: 0 - 1,000,000", inputX, top + 25));
+            top += 55;
 
-            Controls.Add(CreateLabel("End Mileage", 15, 190));
-            ConfigureMileage(numEndMileage, 140, 187);
-            numEndMileage.Value = 1;
+            Controls.Add(CreateLabel("End Mileage", labelX, top));
+            ConfigureMileage(numEndMileage, inputX, top - 3, 1, 1000000);
+            numEndMileage.Value = 5;
             Controls.Add(numEndMileage);
+            Controls.Add(CreateHintLabel("Must be greater than Start Mileage", inputX, top + 25));
+            top += 55;
 
-            Controls.Add(CreateLabel("Purpose", 15, 225));
-            txtPurpose.Location = new System.Drawing.Point(140, 222);
+            Controls.Add(CreateLabel("Purpose", labelX, top));
+            txtPurpose.Location = new System.Drawing.Point(inputX, top - 3);
             txtPurpose.Width = 220;
             Controls.Add(txtPurpose);
+            Controls.Add(CreateHintLabel("Format: Business Logistics", inputX, top + 25));
+            top += 55;
 
             btnSave.Text = "Save";
-            btnSave.Location = new System.Drawing.Point(140, 260);
+            btnSave.Location = new System.Drawing.Point(inputX, top);
             btnSave.Click += btnSave_Click;
             Controls.Add(btnSave);
 
             btnCancel.Text = "Cancel";
-            btnCancel.Location = new System.Drawing.Point(235, 260);
+            btnCancel.Location = new System.Drawing.Point(inputX + 95, top);
             btnCancel.DialogResult = DialogResult.Cancel;
             Controls.Add(btnCancel);
 
@@ -975,26 +1085,27 @@ namespace FleetApp.UI
             CancelButton = btnCancel;
         }
 
-        private static void ConfigureNumeric(NumericUpDown control, int x, int y)
+        private static void ConfigureNumeric(NumericUpDown control, int x, int y, int min, int max)
         {
             control.Location = new System.Drawing.Point(x, y);
             control.Width = 120;
-            control.Minimum = 1;
-            control.Maximum = 1000000;
+            control.Minimum = min;
+            control.Maximum = max;
         }
 
-        private static void ConfigureMileage(NumericUpDown control, int x, int y)
+        private static void ConfigureMileage(NumericUpDown control, int x, int y, int min, int max)
         {
             control.Location = new System.Drawing.Point(x, y);
             control.Width = 120;
             control.DecimalPlaces = 2;
-            control.Maximum = 1000000;
+            control.Minimum = min;
+            control.Maximum = max;
         }
 
         private static void ConfigureDateTime(DateTimePicker dtp, int x, int y)
         {
             dtp.Location = new System.Drawing.Point(x, y);
-            dtp.Width = 200;
+            dtp.Width = 220;
             dtp.Format = DateTimePickerFormat.Custom;
             dtp.CustomFormat = "yyyy-MM-dd HH:mm";
             dtp.ShowUpDown = true;
@@ -1007,6 +1118,17 @@ namespace FleetApp.UI
                 Text = text,
                 Location = new System.Drawing.Point(x, y),
                 AutoSize = true
+            };
+        }
+
+        private static Label CreateHintLabel(string text, int x, int y)
+        {
+            return new Label
+            {
+                Text = text,
+                Location = new System.Drawing.Point(x, y),
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText
             };
         }
 
@@ -1034,6 +1156,18 @@ namespace FleetApp.UI
 
         private bool ValidateForm()
         {
+            if (numVehicleId.Value < 1 || numVehicleId.Value > 1000)
+            {
+                MessageBox.Show("Vehicle ID must be between 1 and 1000.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (numDriverId.Value < 1 || numDriverId.Value > 1000)
+            {
+                MessageBox.Show("Driver ID must be between 1 and 1000.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
             if (dtEnd.Value <= dtStart.Value)
             {
                 MessageBox.Show("End Time must be after Start Time.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1046,6 +1180,13 @@ namespace FleetApp.UI
                 return false;
             }
 
+            if (!string.Equals(txtPurpose.Text.Trim(), "Business Logistics", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Purpose must match 'Business Logistics'.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            txtPurpose.Text = "Business Logistics";
             return true;
         }
     }
@@ -1060,6 +1201,8 @@ namespace FleetApp.UI
         private readonly Button btnSave = new Button();
         private readonly Button btnCancel = new Button();
 
+        private static readonly string[] AllowedServiceTypes = { "Oil Change", "Tire Rotation" };
+
         public MaintenanceInput CreatedRecord { get; private set; }
 
         public AddMaintenanceForm()
@@ -1067,46 +1210,53 @@ namespace FleetApp.UI
             Text = "Add Maintenance Record";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new System.Drawing.Size(400, 320);
+            ClientSize = new System.Drawing.Size(400, 360);
             MaximizeBox = false;
             MinimizeBox = false;
 
             Controls.Add(CreateLabel("Vehicle ID", 15, 15));
-            ConfigureNumeric(numVehicleId, 140, 12);
+            ConfigureNumeric(numVehicleId, 140, 12, 1, 1000);
             Controls.Add(numVehicleId);
+            Controls.Add(CreateHintLabel("Range: 1 - 1000", 140, 35));
 
-            Controls.Add(CreateLabel("Service Date", 15, 50));
-            dtServiceDate.Location = new System.Drawing.Point(140, 47);
+            Controls.Add(CreateLabel("Service Date", 15, 70));
+            dtServiceDate.Location = new System.Drawing.Point(140, 67);
             dtServiceDate.Width = 200;
             dtServiceDate.Format = DateTimePickerFormat.Short;
             Controls.Add(dtServiceDate);
+            Controls.Add(CreateHintLabel("Format: yyyy-MM-dd (within last year)", 140, 90));
 
-            Controls.Add(CreateLabel("Service Type", 15, 85));
-            txtServiceType.Location = new System.Drawing.Point(140, 82);
+            Controls.Add(CreateLabel("Service Type", 15, 125));
+            txtServiceType.Location = new System.Drawing.Point(140, 122);
             txtServiceType.Width = 220;
             Controls.Add(txtServiceType);
+            Controls.Add(CreateHintLabel("Format: Oil Change / Tire Rotation", 140, 145));
 
-            Controls.Add(CreateLabel("Cost", 15, 120));
-            numCost.Location = new System.Drawing.Point(140, 117);
+            Controls.Add(CreateLabel("Cost", 15, 180));
+            numCost.Location = new System.Drawing.Point(140, 177);
             numCost.Width = 120;
             numCost.DecimalPlaces = 2;
-            numCost.Maximum = 1000000;
+            numCost.Minimum = 2000;
+            numCost.Maximum = 5000;
+            numCost.Increment = 50;
             Controls.Add(numCost);
+            Controls.Add(CreateHintLabel("Range: 2,000 - 5,000", 140, 200));
 
-            Controls.Add(CreateLabel("Description", 15, 155));
-            txtDescription.Location = new System.Drawing.Point(140, 152);
+            Controls.Add(CreateLabel("Description", 15, 235));
+            txtDescription.Location = new System.Drawing.Point(140, 232);
             txtDescription.Width = 220;
             txtDescription.Height = 60;
             txtDescription.Multiline = true;
             Controls.Add(txtDescription);
+            Controls.Add(CreateHintLabel("Format: Routine Maintenance", 140, 295));
 
             btnSave.Text = "Save";
-            btnSave.Location = new System.Drawing.Point(140, 240);
+            btnSave.Location = new System.Drawing.Point(140, 310);
             btnSave.Click += btnSave_Click;
             Controls.Add(btnSave);
 
             btnCancel.Text = "Cancel";
-            btnCancel.Location = new System.Drawing.Point(235, 240);
+            btnCancel.Location = new System.Drawing.Point(235, 310);
             btnCancel.DialogResult = DialogResult.Cancel;
             Controls.Add(btnCancel);
 
@@ -1114,12 +1264,12 @@ namespace FleetApp.UI
             CancelButton = btnCancel;
         }
 
-        private static void ConfigureNumeric(NumericUpDown control, int x, int y)
+        private static void ConfigureNumeric(NumericUpDown control, int x, int y, int min, int max)
         {
             control.Location = new System.Drawing.Point(x, y);
             control.Width = 120;
-            control.Minimum = 1;
-            control.Maximum = 1000000;
+            control.Minimum = min;
+            control.Maximum = max;
         }
 
         private static Label CreateLabel(string text, int x, int y)
@@ -1129,6 +1279,17 @@ namespace FleetApp.UI
                 Text = text,
                 Location = new System.Drawing.Point(x, y),
                 AutoSize = true
+            };
+        }
+
+        private static Label CreateHintLabel(string text, int x, int y)
+        {
+            return new Label
+            {
+                Text = text,
+                Location = new System.Drawing.Point(x, y),
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText
             };
         }
 
@@ -1154,18 +1315,39 @@ namespace FleetApp.UI
 
         private bool ValidateForm()
         {
-            if (string.IsNullOrWhiteSpace(txtServiceType.Text))
+            if (numVehicleId.Value < 1 || numVehicleId.Value > 1000)
             {
-                MessageBox.Show("Service Type is required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vehicle ID must be between 1 and 1000.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
-            if (numVehicleId.Value < 1)
+            if (dtServiceDate.Value < DateTime.Now.AddYears(-1) || dtServiceDate.Value > DateTime.Now)
             {
-                MessageBox.Show("Vehicle ID must be greater than zero.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Service Date must be within the last year.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
+            string serviceType = txtServiceType.Text.Trim();
+            if (Array.IndexOf(AllowedServiceTypes, serviceType) == -1)
+            {
+                MessageBox.Show("Service Type must be Oil Change or Tire Rotation.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (numCost.Value < 2000 || numCost.Value > 5000)
+            {
+                MessageBox.Show("Cost must be between 2,000 and 5,000.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtDescription.Text))
+            {
+                MessageBox.Show("Description is required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            txtServiceType.Text = serviceType;
+            txtDescription.Text = txtDescription.Text.Trim();
             return true;
         }
     }
@@ -1338,7 +1520,7 @@ namespace FleetApp.UI
             Text = "Update Driver";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new System.Drawing.Size(360, 260);
+            ClientSize = new System.Drawing.Size(360, 300);
             MaximizeBox = false;
             MinimizeBox = false;
 
@@ -1347,39 +1529,44 @@ namespace FleetApp.UI
             txtFirstName.Width = 190;
             txtFirstName.Text = existing.FirstName;
             Controls.Add(txtFirstName);
+            Controls.Add(CreateHintLabel("Format: Driver####", 140, 35));
 
-            Controls.Add(CreateLabel("Last Name", 15, 50));
-            txtLastName.Location = new System.Drawing.Point(140, 47);
+            Controls.Add(CreateLabel("Last Name", 15, 70));
+            txtLastName.Location = new System.Drawing.Point(140, 67);
             txtLastName.Width = 190;
             txtLastName.Text = existing.LastName;
             Controls.Add(txtLastName);
+            Controls.Add(CreateHintLabel("Format: User####", 140, 90));
 
-            Controls.Add(CreateLabel("CNIC", 15, 85));
-            txtCnic.Location = new System.Drawing.Point(140, 82);
+            Controls.Add(CreateLabel("CNIC", 15, 125));
+            txtCnic.Location = new System.Drawing.Point(140, 122);
             txtCnic.Width = 190;
             txtCnic.Text = existing.CNIC;
             Controls.Add(txtCnic);
+            Controls.Add(CreateHintLabel("Format: 42201-0000001", 140, 145));
 
-            Controls.Add(CreateLabel("Contact #", 15, 120));
-            txtContact.Location = new System.Drawing.Point(140, 117);
+            Controls.Add(CreateLabel("Contact #", 15, 180));
+            txtContact.Location = new System.Drawing.Point(140, 177);
             txtContact.Width = 190;
             txtContact.Text = existing.ContactNumber;
             Controls.Add(txtContact);
+            Controls.Add(CreateHintLabel("Format: 0300-0000001", 140, 200));
 
-            Controls.Add(CreateLabel("License Expiry", 15, 155));
-            dtLicenseExpiry.Location = new System.Drawing.Point(140, 152);
+            Controls.Add(CreateLabel("License Expiry", 15, 235));
+            dtLicenseExpiry.Location = new System.Drawing.Point(140, 232);
             dtLicenseExpiry.Width = 190;
             dtLicenseExpiry.Format = DateTimePickerFormat.Short;
             dtLicenseExpiry.Value = existing.LicenseExpiry;
             Controls.Add(dtLicenseExpiry);
+            Controls.Add(CreateHintLabel(">= 1 year from today", 140, 255));
 
             btnSave.Text = "Update";
-            btnSave.Location = new System.Drawing.Point(140, 200);
+            btnSave.Location = new System.Drawing.Point(140, 265);
             btnSave.Click += btnSave_Click;
             Controls.Add(btnSave);
 
             btnCancel.Text = "Cancel";
-            btnCancel.Location = new System.Drawing.Point(235, 200);
+            btnCancel.Location = new System.Drawing.Point(235, 265);
             btnCancel.DialogResult = DialogResult.Cancel;
             Controls.Add(btnCancel);
 
@@ -1397,13 +1584,21 @@ namespace FleetApp.UI
             };
         }
 
+        private static Label CreateHintLabel(string text, int x, int y)
+        {
+            return new Label
+            {
+                Text = text,
+                Location = new System.Drawing.Point(x, y),
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText
+            };
+        }
+
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtFirstName.Text) ||
-                string.IsNullOrWhiteSpace(txtLastName.Text) ||
-                string.IsNullOrWhiteSpace(txtCnic.Text))
+            if (!ValidateForm())
             {
-                MessageBox.Show("Name and CNIC fields are required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -1418,6 +1613,41 @@ namespace FleetApp.UI
 
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private bool ValidateForm()
+        {
+            if (!Regex.IsMatch(txtFirstName.Text.Trim(), @"^Driver\d{1,4}$", RegexOptions.IgnoreCase))
+            {
+                MessageBox.Show("First Name must follow Driver#### pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Regex.IsMatch(txtLastName.Text.Trim(), @"^User\d{1,4}$", RegexOptions.IgnoreCase))
+            {
+                MessageBox.Show("Last Name must follow User#### pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Regex.IsMatch(txtCnic.Text.Trim(), @"^\d{5}-\d{7}$"))
+            {
+                MessageBox.Show("CNIC must match 42201-0000001 pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (!Regex.IsMatch(txtContact.Text.Trim(), @"^\d{4}-\d{7}$"))
+            {
+                MessageBox.Show("Contact must match 0300-0000001 pattern.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (dtLicenseExpiry.Value <= DateTime.Now.AddYears(1))
+            {
+                MessageBox.Show("License expiry must be at least one year from today.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
         }
     }
 

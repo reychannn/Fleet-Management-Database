@@ -190,18 +190,18 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gridResults.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.gridResults.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.gridResults.Location = new System.Drawing.Point(12, 120);
+            this.gridResults.Location = new System.Drawing.Point(12, 150);
             this.gridResults.MultiSelect = false;
             this.gridResults.Name = "gridResults";
             this.gridResults.ReadOnly = true;
-            this.gridResults.Size = new System.Drawing.Size(776, 290);
+            this.gridResults.Size = new System.Drawing.Size(776, 280);
             this.gridResults.TabIndex = 9;
             // 
             // lblStatus
             // 
             this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new System.Drawing.Point(12, 420);
+            this.lblStatus.Location = new System.Drawing.Point(12, 435);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(196, 13);
             this.lblStatus.TabIndex = 10;
@@ -245,9 +245,9 @@
             // 
             // btnFuelCost
             // 
-            this.btnFuelCost.Location = new System.Drawing.Point(700, 117);
+            this.btnFuelCost.Location = new System.Drawing.Point(580, 117);
             this.btnFuelCost.Name = "btnFuelCost";
-            this.btnFuelCost.Size = new System.Drawing.Size(100, 23);
+            this.btnFuelCost.Size = new System.Drawing.Size(120, 23);
             this.btnFuelCost.TabIndex = 17;
             this.btnFuelCost.Text = "Fuel Cost";
             this.btnFuelCost.UseVisualStyleBackColor = true;
@@ -255,9 +255,9 @@
             // 
             // btnUpdateDriver
             // 
-            this.btnUpdateDriver.Location = new System.Drawing.Point(700, 146); // Placed below Fuel Cost
+            this.btnUpdateDriver.Location = new System.Drawing.Point(450, 117);
             this.btnUpdateDriver.Name = "btnUpdateDriver";
-            this.btnUpdateDriver.Size = new System.Drawing.Size(100, 23);
+            this.btnUpdateDriver.Size = new System.Drawing.Size(120, 23);
             this.btnUpdateDriver.TabIndex = 18;
             this.btnUpdateDriver.Text = "Update Driver";
             this.btnUpdateDriver.UseVisualStyleBackColor = true;

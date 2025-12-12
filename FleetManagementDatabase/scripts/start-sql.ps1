@@ -2,7 +2,7 @@ $container = "fleet-sql"
 $image     = "mcr.microsoft.com/mssql/server:2022-latest"
 $saPwd     = "StrongPassword123"
 $appPwd    = "AppPassword123"
-$sqlScript = "Database\group56_p2.sql"
+$sqlScript = "Database\group8_p2.sql"
 
 if (docker ps -aq -f "name=^${container}$") {
     docker rm -f $container | Out-Null
