@@ -11,6 +11,7 @@ namespace FleetApp.DAL
         Vehicle GetVehicleById(int id);
         void AddVehicle(Vehicle vehicle);
         void AddDriver(Driver driver);
+        void UpdateDriver(Driver driver);
         // Deletion is governed by the trg_PreventDirectVehicleDeletion INSTEAD OF trigger
         void DeleteVehicle(int vehicleId);
         void DeleteDriver(int driverId);

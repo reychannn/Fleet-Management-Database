@@ -90,98 +90,98 @@ CREATE TABLE MaintenanceRecords (
 ) ON ps_TripDate(ServiceDate);
 GO
 
--- PRINT 'Starting Data Generation...';
--- SET NOCOUNT ON;
+PRINT 'Starting Data Generation...';
+SET NOCOUNT ON;
 
--- -- A. Generate 1,000 Vehicles
--- DECLARE @i INT = 1;
--- WHILE @i <= 1000
--- BEGIN
---     INSERT INTO Vehicles (LicensePlate, Make, Model, Mileage, Status)
---     VALUES (
---         'ABC-' + CAST(@i AS VARCHAR), 
---         CHOOSE(@i % 3 + 1, 'Toyota', 'Honda', 'Suzuki'),
---         CHOOSE(@i % 3 + 1, 'Corolla', 'Civic', 'Cultus'),
---         0, 'Available'
---     );
---     SET @i = @i + 1;
--- END
--- PRINT '1,000 Vehicles Generated';
+-- A. Generate 1,000 Vehicles
+DECLARE @i INT = 1;
+WHILE @i <= 1000
+BEGIN
+    INSERT INTO Vehicles (LicensePlate, Make, Model, Mileage, Status)
+    VALUES (
+        'ABC-' + CAST(@i AS VARCHAR), 
+        CHOOSE(@i % 3 + 1, 'Toyota', 'Honda', 'Suzuki'),
+        CHOOSE(@i % 3 + 1, 'Corolla', 'Civic', 'Cultus'),
+        0, 'Available'
+    );
+    SET @i = @i + 1;
+END
+PRINT '1,000 Vehicles Generated';
 
--- --1000 drivers, 1000 vehicles, 10,000 trips, 2,000 maintenance records
+--1000 drivers, 1000 vehicles, 10,000 trips, 2,000 maintenance records
 
--- SET @i = 1;
--- WHILE @i <= 1000
--- BEGIN
---     INSERT INTO Drivers (FirstName, LastName, CNIC, ContactNumber, LicenseExpiry, LicenseValidity)
---     VALUES (
---         'Driver' + CAST(@i AS VARCHAR), 
---         'User' + CAST(@i AS VARCHAR),
---         '42201-' + RIGHT('0000000' + CAST(@i AS VARCHAR), 7),
---         '0300-' + RIGHT('0000000' + CAST(@i AS VARCHAR), 7),
---         DATEADD(YEAR, 2, GETDATE()), 'Valid'
---     );
---     SET @i = @i + 1;
--- END
--- PRINT '1,000 Drivers Generated';
+SET @i = 1;
+WHILE @i <= 1000
+BEGIN
+    INSERT INTO Drivers (FirstName, LastName, CNIC, ContactNumber, LicenseExpiry, LicenseValidity)
+    VALUES (
+        'Driver' + CAST(@i AS VARCHAR), 
+        'User' + CAST(@i AS VARCHAR),
+        '42201-' + RIGHT('0000000' + CAST(@i AS VARCHAR), 7),
+        '0300-' + RIGHT('0000000' + CAST(@i AS VARCHAR), 7),
+        DATEADD(YEAR, 2, GETDATE()), 'Valid'
+    );
+    SET @i = @i + 1;
+END
+PRINT '1,000 Drivers Generated';
 
--- SET @i = 1;
--- DECLARE @BatchSize INT = 10000;
--- DECLARE @TotalRows INT = 1000000; 
+SET @i = 1;
+DECLARE @BatchSize INT = 10000;
+DECLARE @TotalRows INT = 1000000; 
 
--- WHILE @i <= @TotalRows
--- BEGIN
---     INSERT INTO Trips (VehicleID, DriverID, StartTime, EndTime, StartMileage, EndMileage, Purpose)
---     SELECT TOP (@BatchSize)
---         ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1000) + 1,
---         ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1000) + 1,
---         DATEADD(DAY, -((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1400), GETDATE()),
---         DATEADD(MINUTE, ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 105) + 15, 
---                 DATEADD(DAY, -((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1400), GETDATE())),
---         0,
---         ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 95) + 5,
---         'Business Logistics'
---     FROM sys.all_columns c1
---     CROSS JOIN sys.all_columns c2;
+WHILE @i <= @TotalRows
+BEGIN
+    INSERT INTO Trips (VehicleID, DriverID, StartTime, EndTime, StartMileage, EndMileage, Purpose)
+    SELECT TOP (@BatchSize)
+        ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1000) + 1,
+        ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1000) + 1,
+        DATEADD(DAY, -((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1400), GETDATE()),
+        DATEADD(MINUTE, ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 105) + 15, 
+                DATEADD(DAY, -((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 1400), GETDATE())),
+        0,
+        ((ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) + @i - 1) % 95) + 5,
+        'Business Logistics'
+    FROM sys.all_columns c1
+    CROSS JOIN sys.all_columns c2;
     
---     SET @i = @i + @BatchSize;
+    SET @i = @i + @BatchSize;
     
---     IF @i % 100000 = 0
---         PRINT CAST(@i AS VARCHAR) + ' Trips Generated...';
--- END
--- PRINT CAST(@TotalRows AS VARCHAR) + ' Trips Generated';
+    IF @i % 100000 = 0
+        PRINT CAST(@i AS VARCHAR) + ' Trips Generated...';
+END
+PRINT CAST(@TotalRows AS VARCHAR) + ' Trips Generated';
 
--- SET @i = 1;
--- WHILE @i <= 2000
--- BEGIN
---     INSERT INTO MaintenanceRecords (VehicleID, ServiceDate, ServiceType, Cost, Description)
---     VALUES (
---         (@i % 1000) + 1,
---         DATEADD(DAY, -(@i % 365), GETDATE()),
---         CHOOSE(@i % 2 + 1, 'Oil Change', 'Tire Rotation'),
---         (@i % 3000) + 2000,
---         'Routine Maintenance'
---     );
---     SET @i = @i + 1;
--- END
--- PRINT '2,000 Maintenance Records Generated';
--- GO
+SET @i = 1;
+WHILE @i <= 2000
+BEGIN
+    INSERT INTO MaintenanceRecords (VehicleID, ServiceDate, ServiceType, Cost, Description)
+    VALUES (
+        (@i % 1000) + 1,
+        DATEADD(DAY, -(@i % 365), GETDATE()),
+        CHOOSE(@i % 2 + 1, 'Oil Change', 'Tire Rotation'),
+        (@i % 3000) + 2000,
+        'Routine Maintenance'
+    );
+    SET @i = @i + 1;
+END
+PRINT '2,000 Maintenance Records Generated';
+GO
 
--- PRINT 'Updating Vehicle Mileage...';
+PRINT 'Updating Vehicle Mileage...';
 
--- UPDATE V
--- SET V.Mileage = ISNULL(T.TotalDistance, 0)
--- FROM Vehicles V
--- LEFT JOIN (
---     SELECT VehicleID, SUM(EndMileage - StartMileage) AS TotalDistance
---     FROM Trips
---     GROUP BY VehicleID
--- ) T ON V.VehicleID = T.VehicleID;
+UPDATE V
+SET V.Mileage = ISNULL(T.TotalDistance, 0)
+FROM Vehicles V
+LEFT JOIN (
+    SELECT VehicleID, SUM(EndMileage - StartMileage) AS TotalDistance
+    FROM Trips
+    GROUP BY VehicleID
+) T ON V.VehicleID = T.VehicleID;
 
--- PRINT 'Vehicle Mileage Updated';
--- GO
+PRINT 'Vehicle Mileage Updated';
+GO
 
--- SET NOCOUNT OFF;
+SET NOCOUNT OFF;
 
 ALTER TABLE Trips WITH CHECK ADD CONSTRAINT FK_Trips_Vehicles FOREIGN KEY(VehicleID) REFERENCES Vehicles (VehicleID);
 ALTER TABLE Trips WITH CHECK ADD CONSTRAINT FK_Trips_Drivers FOREIGN KEY(DriverID) REFERENCES Drivers (DriverID);
